@@ -13,25 +13,45 @@ class BeerModelRemote: BeerModel {
     var beers: [Beer] = []
     var randomBeer: Beer = Beer()
     let networkLayer: NetworkLayer
+    private var currentPage = 1
+    let pageSize = 25
+    var addedBeers = 0
+    var downloadedAll = false
     
     init(withNetworkLayer layer: NetworkLayer) {
         self.networkLayer = layer
     }
     
     func getBeers(completion: @escaping BeerModel.GetBeersCompl) {
-        networkLayer.getBeers { [weak self] beers, error in
+        networkLayer.getBeers(fromPage: currentPage) { [weak self] beers, error in
             
             guard let beers = beers else {
-                completion(false)
+                completion(false, nil)
                 return
             }
             
-            self?.beers = beers
-            completion(true)
+            self?.addedBeers = beers.count
+            
+            if let self = self, self.addedBeers < self.pageSize {
+                self.downloadedAll = true
+            }
+            
+            self?.beers.append(contentsOf: beers)
+            let indexPaths: [IndexPath]?
+            
+            if let page = self?.currentPage, page > 1 {
+                indexPaths = self?.calculateIndexPathsToReload(from: beers)
+            } else {
+                indexPaths = nil
+            }
+            
+            self?.currentPage += 1
+            
+            completion(true, indexPaths)
         }
     }
     
-    func getRandomBeer(completion: @escaping BeerModel.GetBeersCompl) {
+    func getRandomBeer(completion: @escaping BeerModel.GetRandomBeerCompl) {
         
         networkLayer.getRandomBeer { [weak self] randomBeer, error in
             
@@ -43,5 +63,11 @@ class BeerModelRemote: BeerModel {
             self?.randomBeer = randomBeer
             completion(true)
         }
+    }
+    
+    private func calculateIndexPathsToReload(from newBeers: [Beer]) -> [IndexPath] {
+        let startIndex = beers.count - newBeers.count
+        let endIndex = startIndex + newBeers.count
+        return (startIndex..<endIndex).map { IndexPath(row: $0, section: 0) }
     }
 }

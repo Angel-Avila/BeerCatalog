@@ -10,6 +10,6 @@ import Foundation
 
 protocol NetworkLayer {
     typealias GetBeersCompletion = ([Beer]?, Error?) -> ()
-    func getBeers(completion: @escaping GetBeersCompletion)
+    func getBeers(fromPage page: Int, completion: @escaping GetBeersCompletion)
     func getRandomBeer(completion: @escaping GetBeersCompletion)
 }

@@ -26,8 +26,8 @@ class BeerTableViewController: UIViewController {
         super.viewDidLoad()
         self.view.backgroundColor = presenter.backgroundColor
         setupTableView()
-        presenter.getBeers { [weak self] in
-            self?.tableView.reloadData()
+        presenter.getBeers { [weak self] indexPaths in
+            self?.reloadTableView(at: indexPaths)
         }
     }
     
@@ -36,10 +36,34 @@ class BeerTableViewController: UIViewController {
         self.title = "BEER CATALOG"
     }
     
+    private func reloadTableView(at indexPaths: [IndexPath]?) {
+        guard let indexPaths = indexPaths else {
+            tableView.reloadData()
+            return
+        }
+        
+        let downloadedAllBeers = presenter.model.downloadedAll
+        let offset = downloadedAllBeers ? presenter.model.addedBeers: 0
+        
+        let startIndex = presenter.model.beers.count
+        let endIndex = startIndex + presenter.model.pageSize - offset
+        let indexPathsModify = (startIndex..<endIndex).map { IndexPath(row: $0, section: 0) }
+        
+        if !downloadedAllBeers {
+            tableView.insertRows(at: indexPathsModify, with: .fade)
+        } else {
+            tableView.deleteRows(at: indexPathsModify, with: .fade)
+        }
+    
+        let indexPathsToReload = visibleIndexPathsToReload(intersecting: indexPaths)
+        tableView.reloadRows(at: indexPathsToReload, with: .fade)
+    }
+    
     func setupTableView() {
         tableView = UITableView(frame: self.view.frame, style: .plain)
         tableView.accessibilityIdentifier = "tvAccessibilityIdentifier"
         tableView.delegate = self
+        tableView.prefetchDataSource = self
         tableView.dataSource = presenter
         presenter.registerCells(forTableView: tableView)
         tableView.estimatedRowHeight = BeerCell.expectedWidth * BeerCell.heightMultiplier
@@ -65,5 +89,23 @@ extension BeerTableViewController: UITableViewDelegate {
         backItem.tintColor = .agaveGold
         navigationItem.backBarButtonItem = backItem
         navigationController?.pushViewController(detailsController, animated: true)
+    }
+}
+
+extension BeerTableViewController: UITableViewDataSourcePrefetching {
+    func tableView(_ tableView: UITableView, prefetchRowsAt indexPaths: [IndexPath]) {
+        if indexPaths.contains(where: presenter.isLoadingCell) {
+            presenter.getBeers { [weak self] indexPaths in
+                self?.reloadTableView(at: indexPaths)
+            }
+        }
+    }
+}
+
+extension BeerTableViewController {
+    func visibleIndexPathsToReload(intersecting indexPaths: [IndexPath]) -> [IndexPath] {
+        let indexPathsForVisibleRows = tableView.indexPathsForVisibleRows ?? []
+        let indexPathsIntersection = Set(indexPathsForVisibleRows).intersection(indexPaths)
+        return Array(indexPathsIntersection)
     }
 }

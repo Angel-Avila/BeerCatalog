@@ -12,10 +12,11 @@ class AlamofireLayer: NetworkLayer {
 
     let throttler = Throttler(seconds: 1)
     
-    let beersURL = URL(string: "https://api.punkapi.com/v2/beers")!
     let randomBeerURL = URL(string: "https://api.punkapi.com/v2/beers/random")!
     
-    func getBeers(completion: @escaping NetworkLayer.GetBeersCompletion) {
+    func getBeers(fromPage page: Int, completion: @escaping NetworkLayer.GetBeersCompletion) {
+        
+        let beersURL = URL(string: "https://api.punkapi.com/v2/beers?page=\(page)")!
         
         request(url: beersURL, method: .get, completion: completion)
     }

@@ -22,10 +22,10 @@ class BeerCollectionPresenter: NSObject {
         self.model = model
     }
     
-    func getBeers(completion: @escaping (() -> ())) {
-        self.model.getBeers { success in
+    func getBeers(completion: @escaping ((_ indexPaths: [IndexPath]?) -> ())) {
+        self.model.getBeers { success, indexPaths in
             if success {
-                completion()
+                completion(indexPaths)
             } else {
                 print("Can't get beers")
             }
@@ -40,18 +40,30 @@ class BeerCollectionPresenter: NSObject {
     func registerCells(forTableView tableView: UITableView) {
         tableView.register(BeerCell.self, forCellReuseIdentifier: cellId)
     }
+    
+    func isLoadingCell(for indexPath: IndexPath) -> Bool {
+        return indexPath.row >= model.beers.count
+    }
 }
 
 
 extension BeerCollectionPresenter: UITableViewDataSource {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if !model.downloadedAll {
+            return beers.count + model.pageSize
+        }
+        
         return beers.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! BeerCell
         
-        cell.beer = beers[indexPath.row]
+        if !isLoadingCell(for: indexPath) {
+            cell.beer = beers[indexPath.row]
+        }
+        
         cell.accessoryType = .disclosureIndicator
         cell.accessibilityIdentifier = "cell\(indexPath.row)"
         
