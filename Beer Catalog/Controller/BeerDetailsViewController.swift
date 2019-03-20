@@ -26,7 +26,8 @@ class BeerDetailsViewController: UIViewController {
     var beer: Beer? {
         didSet {
             guard let beer = beer else { return }
-            setupBeerUI(fromBeer: beer)
+            let beerVM = BeerViewModel(from: beer)
+            setupBeerUI(fromBeer: beerVM)
         }
     }
     
@@ -55,29 +56,17 @@ class BeerDetailsViewController: UIViewController {
         }
     }
 
-    private func setupBeerUI(fromBeer beer: Beer) {
-        self.title = beer.name ?? "-"
-        beerDetailsView.taglineLabel.text = beer.tagline ?? "-"
+    private func setupBeerUI(fromBeer beer: BeerViewModel) {
+        self.title = beer.name
+        beerDetailsView.taglineLabel.text = beer.tagline
+        beerDetailsView.abvLabel.text = beer.abv
+        beerDetailsView.ibuLabel.text = beer.ibu
+        beerDetailsView.brewedDateLabel.text = beer.date
+        beerDetailsView.descritionLabel.text = beer.description
+        beerDetailsView.foodPairingLabel.text = beer.foodPairing
+        beerDetailsView.srmColorView.backgroundColor = beer.srmColor
         
-        let abv = beer.abv != nil ? String(beer.abv!) : "-"
-        beerDetailsView.abvLabel.text = "ALC/VOL: \(abv)%"
-        
-        let ibu = beer.ibu != nil ? String(beer.ibu!) : "-"
-        beerDetailsView.ibuLabel.text = "IBU's: \(ibu)"
-        
-        let date = beer.firstBrewed != nil ? beer.firstBrewed! : "-"
-        beerDetailsView.brewedDateLabel.text = "DATE: \(date)"
-        
-        let description = beer.firstBrewed != nil ? beer.description! : "-"
-        beerDetailsView.descritionLabel.text = description
-        
-        let foodPairing = beer.foodPairing != nil ? beer.foodPairing!.joined(separator: ", ") : "-"
-        beerDetailsView.foodPairingLabel.text = foodPairing
-        
-        let srmColor = beer.srm != nil ? beer.srm!.srmColor() : Double(exactly: -1)?.srmColor()
-        beerDetailsView.srmColorView.backgroundColor = srmColor
-        
-        guard let stringUrl = beer.imageUrl, let url = URL(string: stringUrl) else { return }
+        guard let url = beer.url else { return }
         
         beerDetailsView.beerImageView.af_setImage(withURL: url)
     }

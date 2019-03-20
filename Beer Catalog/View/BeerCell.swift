@@ -13,14 +13,14 @@ class BeerCell: UITableViewCell {
 
     static let expectedWidth = (UIScreen.main.bounds.width / 4) - (5 * 8)
     static let heightMultiplier: CGFloat = (16/9)
-    var beer: Beer? {
+    var beer: BeerViewModel? {
         didSet {
             guard let beer = beer else { return }
-            nameLabel.text = beer.name ?? "-"
-            taglineLabel.text = beer.tagline ?? "-"
+            nameLabel.text = beer.name
+            taglineLabel.text = beer.tagline
             //taglineLabel.text = "Lorem ipsum dolor sit amet consectetur adipiscing elit, eleifend senectus hac arcu commodo tellus cum, leo lacus justo fusce taciti sociis. Cras sociis ante aptent nulla mattis porta cubilia sollicitudin, dis phasellus id scelerisque dictum per sagittis tristique, duis taciti sed tempus varius pharetra hac. Turpis sociosqu massa netus est sociis venenatis metus dui facilisis cubilia diam natoque interdum, arcu duis porttitor at nec molestie eleifend aenean mi neque sem laoreet, tempus nascetur mus mollis feugiat praesent maecenas varius pretium pulvinar integer pellentesque."
             
-            guard let stringUrl = beer.imageUrl, let url = URL(string: stringUrl) else { return }
+            guard let url = beer.url else { return }
             
             beerImageView.af_setImage(withURL: url)
         }

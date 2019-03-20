@@ -61,7 +61,8 @@ extension BeerCollectionPresenter: UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath) as! BeerCell
         
         if !isLoadingCell(for: indexPath) {
-            cell.beer = beers[indexPath.row]
+            let beer = beers[indexPath.row]
+            cell.beer = BeerViewModel(from: beer)
         }
         
         cell.accessoryType = .disclosureIndicator
